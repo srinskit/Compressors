@@ -47,23 +47,24 @@ int main(int argc, char *const argv[]) {
         }
     }
     else if(ip_lang == English){
-        char buffer[1000], ch;
+        const int MAX_TOKEN_LENGTH = 100;
+        char token[MAX_TOKEN_LENGTH + 1], ch;
         int i = 0;
         while (fscanf(ip_fptr, "%c", &ch) != EOF){
             if(isalpha(ch)){
-                if(i < sizeof(buffer) - 1){
-                    buffer[i++] = ch;
+                if(i < sizeof(token) - 1){
+                    token[i++] = ch;
                 }
                 else{
-                    buffer[sizeof(buffer) - 1] = '\0';
-                    fprintf(op_fptr, "%s\n", buffer);
-                    buffer[0] = ch;
+                    token[sizeof(token) - 1] = '\0';
+                    fprintf(op_fptr, "%s\n", token);
+                    token[0] = ch;
                     i = 1;
                 }
             }
             else if(i > 0){
-                buffer[i] = '\0';
-                fprintf(op_fptr, "%s\n%c\n", buffer, ch);
+                token[i] = '\0';
+                fprintf(op_fptr, "%s\n%c\n", token, ch);
                 i = 0;
             }
             else{
