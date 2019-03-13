@@ -94,6 +94,61 @@ int main(int argc, char *const argv[]) {
                 free(stack[i]);
         }
     }
+    else{
+        if(ip_lang == ASCII){
+            
+        }
+        else if(ip_lang == English){
+            const int MAX_TOKEN_LENGTH = 100, STACK_SIZE = 100;
+            int i, found;
+            char *stack[STACK_SIZE];
+            // token + \n + \0
+            char line[MAX_TOKEN_LENGTH + 1 + 1];
+            for(i=0; i<STACK_SIZE; ++i)
+                stack[i] = NULL;
+            while(fgets(line, sizeof(line), ip_fptr) != NULL){
+                line[strlen(line)-1] = '\0';
+                if(strcmp(line, "-1") == 0){
+                    if(fgets(line, sizeof(line), ip_fptr) == NULL)
+                        break;
+                    line[strlen(line)-1] = '\0';
+                    if(strlen(line) == 0){
+                        // When OG string is '\n\n'
+                        // Todo: test when OG token is '\0'
+                        if(fgets(line, sizeof(line), ip_fptr) == NULL)
+                            break;
+                    }
+                    char* prev_item = NULL;
+                    for(i=0; i< STACK_SIZE && stack[i]!=NULL;++i){
+                        char* tmp = stack[i];
+                        stack[i] = prev_item;
+                        prev_item = tmp;
+                    }
+                    if(i< STACK_SIZE)
+                        stack[i] = prev_item;
+                    else
+                        free(prev_item);
+                    stack[0] = (char*)malloc(MAX_TOKEN_LENGTH+1);
+                    strcpy(stack[0], line);
+                    fprintf(op_fptr, "%s\n", line);
+                }
+                else{
+                    char *end;
+                    long n = strtol(line, &end, 10);
+                    char *prev_item = NULL;
+                    for(i=0; i<= n;++i){
+                        char* tmp = stack[i];
+                        stack[i] = prev_item;
+                        prev_item = tmp;
+                    }
+                    stack[0] = prev_item;
+                    fprintf(op_fptr, "%s\n", prev_item);
+                }
+            }
+            for(i=0; i<STACK_SIZE; ++i)
+                free(stack[i]);
+        }
+    }
     fclose(ip_fptr);
     fclose(op_fptr);
     return 0;
