@@ -12,7 +12,7 @@ int main(int argc, char *const argv[]) {
         ASCII,
         English,
     };
-    enum lang ip_lang = ASCII;
+    enum lang ip_lang = English;
     char ip_file[FILENAME_SIZE], op_file[FILENAME_SIZE];
     // Linux specific
     snprintf(ip_file, sizeof(ip_file), "%s", "/dev/stdin");
@@ -88,7 +88,6 @@ int main(int argc, char *const argv[]) {
             }
         } else if (ip_lang == English) {
             const int MAX_TOKEN_LENGTH = 100;
-            char token[MAX_TOKEN_LENGTH + 1], ch;
             char line[MAX_TOKEN_LENGTH + 1 + 1];
             while (fgets(line, sizeof(line), ip_fptr) != NULL) {
                 line[strlen(line) - 1] = '\0';
