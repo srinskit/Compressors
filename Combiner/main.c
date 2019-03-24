@@ -45,12 +45,8 @@ int buff_write(uint64_t *buff, uint64_t code, unsigned code_len, int flush) {
     if (code_len <= vacant_len) {
         *buff <<= code_len;
         *buff += code;
-        if (vacant_len -= code_len)
-            return 1;
-        else {
-            vacant_len = buff_len;
-            return 0;
-        }
+        vacant_len -= code_len;
+        return 1;
     }
     to_write_len = code_len - vacant_len;
     *buff <<= vacant_len;
