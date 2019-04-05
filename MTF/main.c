@@ -52,7 +52,7 @@ int main(int argc, char *const argv[]) {
     if (encode) {
         if (ip_lang == ASCII) {
         } else if (ip_lang == English) {
-            const int MAX_TOKEN_LENGTH = 100, STACK_SIZE = 100;
+            const int MAX_TOKEN_LENGTH = 15, STACK_SIZE = 255;
             int i, found;
             char *stack[STACK_SIZE];
             // token + \n + \0
@@ -94,7 +94,7 @@ int main(int argc, char *const argv[]) {
     } else {
         if (ip_lang == ASCII) {
         } else if (ip_lang == English) {
-            const int MAX_TOKEN_LENGTH = 100, STACK_SIZE = 100;
+            const int MAX_TOKEN_LENGTH = 15, STACK_SIZE = 255;
             int i, found;
             char *stack[STACK_SIZE];
             // token + \n + \0

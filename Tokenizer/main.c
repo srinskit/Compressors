@@ -56,7 +56,7 @@ int main(int argc, char *const argv[]) {
                 fprintf(op_fptr, "%c\n", ch);
             }
         } else if (ip_lang == English) {
-            const int MAX_TOKEN_LENGTH = 100;
+            const int MAX_TOKEN_LENGTH = 15;
             char token[MAX_TOKEN_LENGTH + 1], ch;
             int i = 0;
             while (fscanf(ip_fptr, "%c", &ch) != EOF) {
@@ -87,7 +87,7 @@ int main(int argc, char *const argv[]) {
                 fprintf(op_fptr, "%c", line[0]);
             }
         } else if (ip_lang == English) {
-            const int MAX_TOKEN_LENGTH = 100;
+            const int MAX_TOKEN_LENGTH = 15;
             char line[MAX_TOKEN_LENGTH + 1 + 1];
             while (fgets(line, sizeof(line), ip_fptr) != NULL) {
                 line[strlen(line) - 1] = '\0';
