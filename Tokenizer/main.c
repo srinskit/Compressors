@@ -6,6 +6,12 @@
 #define FILENAME_SIZE 50
 extern char *optarg;
 
+int strlenn(char *s) {
+    int i = 0;
+    while (*(s++) != '\n') ++i;
+    return i;
+}
+
 int main(int argc, char *const argv[]) {
     int tokenize = 1;
     enum lang {
@@ -40,12 +46,11 @@ int main(int argc, char *const argv[]) {
         }
     }
     FILE *ip_fptr, *op_fptr;
-    if ((ip_fptr = fopen(ip_file, "r")) == NULL) {
+    if ((ip_fptr = fopen(ip_file, "rb")) == NULL) {
         printf("Cannot open input file\n");
         return 1;
     }
-    op_fptr = fopen(op_file, "w");
-    if ((op_fptr = fopen(op_file, "w")) == NULL) {
+    if ((op_fptr = fopen(op_file, "wb")) == NULL) {
         printf("Cannot open output file\n");
         return 1;
     }
@@ -59,22 +64,27 @@ int main(int argc, char *const argv[]) {
             const int MAX_TOKEN_LENGTH = 15;
             char token[MAX_TOKEN_LENGTH + 1], ch;
             int i = 0;
-            while (fscanf(ip_fptr, "%c", &ch) != EOF) {
+            while (fread(&ch, 1, 1, ip_fptr) == 1) {
                 if (isalpha(ch)) {
                     if (i < sizeof(token) - 1) {
                         token[i++] = ch;
                     } else {
-                        token[sizeof(token) - 1] = '\0';
-                        fprintf(op_fptr, "%s\n", token);
+                        token[sizeof(token) - 1] = '\n';
+                        fwrite(token, 1, sizeof(token), op_fptr);
                         token[0] = ch;
                         i = 1;
                     }
                 } else if (i > 0) {
-                    token[i] = '\0';
-                    fprintf(op_fptr, "%s\n%c\n", token, ch);
+                    token[i] = '\n';
+                    fwrite(token, 1, i + 1, op_fptr);
+                    fwrite(&ch, 1, 1, op_fptr);
+                    ch = '\n';
+                    fwrite(&ch, 1, 1, op_fptr);
                     i = 0;
                 } else {
-                    fprintf(op_fptr, "%c\n", ch);
+                    fwrite(&ch, 1, 1, op_fptr);
+                    ch = '\n';
+                    fwrite(&ch, 1, 1, op_fptr);
                 }
             }
         }
@@ -90,10 +100,11 @@ int main(int argc, char *const argv[]) {
             const int MAX_TOKEN_LENGTH = 15;
             char line[MAX_TOKEN_LENGTH + 1 + 1];
             while (fgets(line, sizeof(line), ip_fptr) != NULL) {
-                line[strlen(line) - 1] = '\0';
-                if (strlen(line) == 0)
+                if (strlenn(line) == 0) {
                     if (fgets(line, sizeof(line), ip_fptr) == NULL) break;
-                fprintf(op_fptr, "%s", line);
+                    fwrite(line, 1, 1, op_fptr);
+                } else
+                    fwrite(line, 1, strlenn(line), op_fptr);
             }
         }
     }

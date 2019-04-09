@@ -99,6 +99,12 @@ int buff_read(uint64_t *buff, uint64_t *code, unsigned code_len, int flush) {
     return 0;
 }
 
+int strlenn(char *s) {
+    int i = 0;
+    while (*(s++) != '\n') ++i;
+    return i;
+}
+
 int main(int argc, char *const argv[]) {
     int combine = 1;
     enum lang {
@@ -133,12 +139,12 @@ int main(int argc, char *const argv[]) {
         }
     }
     FILE *ip_fptr, *op_fptr;
-    if ((ip_fptr = fopen(ip_file, "r")) == NULL) {
+    if ((ip_fptr = fopen(ip_file, "rb")) == NULL) {
         printf("Cannot open input file\n");
         return 1;
     }
     op_fptr = fopen(op_file, "w");
-    if ((op_fptr = fopen(op_file, "w")) == NULL) {
+    if ((op_fptr = fopen(op_file, "wb")) == NULL) {
         printf("Cannot open output file\n");
         return 1;
     }
@@ -153,11 +159,10 @@ int main(int argc, char *const argv[]) {
                 line[strlen(line) - 1] = '\0';
                 if (strcmp(line, "-1") == 0) {
                     if (fgets(line, sizeof(line), ip_fptr) == NULL) break;
-                    line[strlen(line) - 1] = '\0';
-                    unsigned line_len = strlen(line);
+                    unsigned line_len = strlenn(line);
                     if (line_len == 0) {
                         if (fgets(line, sizeof(line), ip_fptr) == NULL) break;
-                        line_len = strlen(line);
+                        line_len = 1;
                     }
                     if (buff_write(&buff, STACK_SIZE, code_len, 0) == 0) {
                         fwrite(&buff, sizeof(buff), 1, op_fptr);
@@ -170,7 +175,7 @@ int main(int argc, char *const argv[]) {
                         buff_write(&buff, line_len, len_len, 0);
                     }
                     for (int i = 0; i < line_len; ++i) {
-                        code = (int)line[i];
+                        code = (unsigned char)line[i];
                         if (buff_write(&buff, code, 8, 0) == 0) {
                             fwrite(&buff, sizeof(buff), 1, op_fptr);
                             buff = 0;
@@ -204,11 +209,10 @@ int main(int argc, char *const argv[]) {
                 line[strlen(line) - 1] = '\0';
                 if (strcmp(line, "-1") == 0) {
                     if (fgets(line, sizeof(line), ip_fptr) == NULL) break;
-                    line[strlen(line) - 1] = '\0';
-                    unsigned line_len = strlen(line);
+                    unsigned line_len = strlenn(line);
                     if (line_len == 0) {
                         if (fgets(line, sizeof(line), ip_fptr) == NULL) break;
-                        line_len = strlen(line);
+                        line_len = 1;
                     }
                     if (buff_write(&buff, 1, 1, 0) == 0) {
                         fwrite(&buff, sizeof(buff), 1, op_fptr);
@@ -221,7 +225,7 @@ int main(int argc, char *const argv[]) {
                         buff_write(&buff, line_len, len_len, 0);
                     }
                     for (int i = 0; i < line_len; ++i) {
-                        code = (int)line[i];
+                        code = (unsigned char)line[i];
                         if (buff_write(&buff, code, 8, 0) == 0) {
                             fwrite(&buff, sizeof(buff), 1, op_fptr);
                             buff = 0;
@@ -282,8 +286,9 @@ int main(int argc, char *const argv[]) {
                         }
                         token[i] = code;
                     }
-                    token[i] = '\0';
-                    fprintf(op_fptr, "-1\n%s\n", token);
+                    token[i] = '\n';
+                    fprintf(op_fptr, "-1\n");
+                    fwrite(token, 1, token_len + 1, op_fptr);
                 } else {
                     fprintf(op_fptr, "%" PRIu64 "\n", code);
                 }
@@ -319,8 +324,9 @@ int main(int argc, char *const argv[]) {
                         }
                         token[i] = code;
                     }
-                    token[i] = '\0';
-                    fprintf(op_fptr, "-1\n%s\n", token);
+                    token[i] = '\n';
+                    fprintf(op_fptr, "-1\n");
+                    fwrite(token, 1, token_len + 1, op_fptr);
                 } else {
                     code = 0;
                     if (buff_read(&buff, &code, code_len, 0) == 0) {
