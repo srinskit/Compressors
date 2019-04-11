@@ -12,3 +12,9 @@ wc -c ip_file op_file
 
 # Verify
 diff ip_file ip_file1
+~~~~
+## MTF flow chart
+
+![MTF encoder flow chart](MTF_e.png "MTF encoder")
+
+![MTF decoder flow chart](MTF_d.png "MTF decoder")
