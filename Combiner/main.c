@@ -110,6 +110,7 @@ int main(int argc, char *const argv[]) {
     enum lang {
         MTF,
         MTF2,
+        MTF3,
     };
     enum lang ip_lang = MTF;
     char ip_file[FILENAME_SIZE], op_file[FILENAME_SIZE];
@@ -125,6 +126,8 @@ int main(int argc, char *const argv[]) {
                     ip_lang = MTF;
                 else if (strcmp(optarg, "MTF2") == 0)
                     ip_lang = MTF2;
+                else if (strcmp(optarg, "MTF3") == 0)
+                    ip_lang = MTF3;
                 break;
             case 'i':
                 snprintf(ip_file, sizeof(ip_file), "%s", optarg);
@@ -254,6 +257,60 @@ int main(int argc, char *const argv[]) {
             int rem;
             if ((rem = buff_write(&buff, 0, 0, 1)) != 0)
                 fwrite(&buff, 1, sizeof(buff), op_fptr);
+        } else if (ip_lang == MTF3) {
+            const int MAX_TOKEN_LENGTH = 15, STACK_SIZE = 255;
+            char line[MAX_TOKEN_LENGTH + 1 + 1];
+            unsigned code_len = ceilf(log2f(STACK_SIZE - 1 + 1 + 1));
+            uint64_t buff = 0, code;
+            while (fgets(line, sizeof(line), ip_fptr) != NULL) {
+                line[strlen(line) - 1] = '\0';
+                if (strcmp(line, "-1") == 0) {
+                    if (fgets(line, sizeof(line), ip_fptr) == NULL) break;
+                    unsigned line_len = strlenn(line);
+                    if (line_len == 0) {
+                        if (fgets(line, sizeof(line), ip_fptr) == NULL) break;
+                        line_len = 1;
+                    }
+                    if (buff_write(&buff, STACK_SIZE, code_len, 0) == 0) {
+                        fwrite(&buff, sizeof(buff), 1, op_fptr);
+                        buff = 0;
+                        buff_write(&buff, STACK_SIZE, code_len, 0);
+                    }
+                    for (int i = 0; i < line_len; ++i) {
+                        code = (unsigned char)line[i];
+                        if (buff_write(&buff, code, 8, 0) == 0) {
+                            fwrite(&buff, sizeof(buff), 1, op_fptr);
+                            buff = 0;
+                            buff_write(&buff, code, 8, 0);
+                        }
+                    }
+                    if (buff_write(&buff, STACK_SIZE, code_len, 0) == 0) {
+                        fwrite(&buff, sizeof(buff), 1, op_fptr);
+                        buff = 0;
+                        buff_write(&buff, STACK_SIZE, code_len, 0);
+                    }
+                } else {
+                    code = strtoumax(line, NULL, 10);
+                    if (buff_write(&buff, code, code_len, 0) == 0) {
+                        fwrite(&buff, sizeof(buff), 1, op_fptr);
+                        buff = 0;
+                        buff_write(&buff, code, code_len, 0);
+                    }
+                }
+            }
+            if (buff_write(&buff, STACK_SIZE, code_len, 0) == 0) {
+                fwrite(&buff, sizeof(buff), 1, op_fptr);
+                buff = 0;
+                buff_write(&buff, STACK_SIZE, code_len, 0);
+            }
+            if (buff_write(&buff, STACK_SIZE, code_len, 0) == 0) {
+                fwrite(&buff, sizeof(buff), 1, op_fptr);
+                buff = 0;
+                buff_write(&buff, STACK_SIZE, code_len, 0);
+            }
+            int rem;
+            if ((rem = buff_write(&buff, 0, 0, 1)) != 0)
+                fwrite(&buff, 1, sizeof(buff), op_fptr);
         }
     } else {
         if (ip_lang == MTF) {
@@ -333,6 +390,40 @@ int main(int argc, char *const argv[]) {
                         if (fread(&buff, 1, sizeof(buff), ip_fptr) == 0) break;
                         buff_read(&buff, &code, code_len, 0);
                     }
+                    fprintf(op_fptr, "%" PRIu64 "\n", code);
+                }
+            }
+            buff_read(NULL, NULL, 0, 1);
+        } else if (ip_lang == MTF3) {
+            const int MAX_TOKEN_LENGTH = 15, STACK_SIZE = 255;
+            char token[MAX_TOKEN_LENGTH + 1];
+            unsigned code_len = ceilf(log2f(STACK_SIZE - 1 + 1 + 1));
+            // code_len has to be 8
+            uint64_t buff = 0, code;
+            if (fread(&buff, 1, sizeof(buff), ip_fptr) == 0) return 1;
+            while (1) {
+                code = 0;
+                if (buff_read(&buff, &code, code_len, 0) == 0) {
+                    if (fread(&buff, 1, sizeof(buff), ip_fptr) == 0) break;
+                    buff_read(&buff, &code, code_len, 0);
+                }
+                if (code == STACK_SIZE) {
+                    int i;
+                    for (i = 0; 1; ++i) {
+                        code = 0;
+                        if (buff_read(&buff, &code, 8, 0) == 0) {
+                            if (fread(&buff, 1, sizeof(buff), ip_fptr) == 0)
+                                break;
+                            buff_read(&buff, &code, 8, 0);
+                        }
+                        if (code == STACK_SIZE) break;
+                        token[i] = code;
+                    }
+                    if (i == 0) break;
+                    token[i] = '\n';
+                    fprintf(op_fptr, "-1\n");
+                    fwrite(token, 1, i + 1, op_fptr);
+                } else {
                     fprintf(op_fptr, "%" PRIu64 "\n", code);
                 }
             }
